@@ -5,7 +5,7 @@ function App() {
       <header className="App-header">
        
         <p className='text-green-300'>
-          hi dheeraj
+          welcome to the netflix gpt
         </p>
         
       </header>
