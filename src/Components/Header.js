@@ -1,32 +1,51 @@
 import React from 'react'
-import { signOut } from "firebase/auth";
+import { signOut, onAuthStateChanged } from "firebase/auth";
 import { auth } from '../Utils/firebase';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector,useDispatch } from 'react-redux';
+import { addUser, removeUser } from '../Utils/userSlice';
+import { useEffect } from 'react';
+import { AVATAR, LOGO } from '../Utils/constants';
 
 const Header = () => {
-   
-    const user = useSelector(store => store.user);
+    const dispatch =useDispatch();
     const navigate =useNavigate();
+    const user = useSelector(store => store.user);
+    
     const handleSignOut = () =>{
         
      signOut(auth).then(() => {
-    navigate("/");
+    
 }).catch((error) => {
   navigate("/error");
 });
 
 
-    }
+    };
+
+    useEffect(() =>{
+     const unSubscribe = onAuthStateChanged(auth, (user) => {
+  if (user) {
+   
+    const {uid,email,displayName ,photoURL} = user;
+    dispatch(addUser({uid: uid , email: email ,displayName : displayName , photoURL: photoURL}));
+    navigate("/browse");
+  } else {
+    dispatch(removeUser());
+    navigate("/")
+  }
+});
+return () => unSubscribe ();
+},[]);
   return (
     <div className='absolute  w-screen px-8 py-2 bg-gradient-to-b from-black z-10 flex justify-between'>
       <img className='w-36'
-      src="https://help.nflxext.com/helpcenter/OneTrust/oneTrust_production_2025-08-26/consent/87b6a5c0-0104-4e96-a291-092c11350111/0198e689-25fa-7d64-bb49-0f7e75f898d2/logos/dd6b162f-1a32-456a-9cfe-897231c7763c/4345ea78-053c-46d2-b11e-09adaef973dc/Netflix_Logo_PMS.png"
+      src={LOGO}
       alt="logo"
       />
       {user && (<div>
         <img className='w-14'
-        src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJQAAACUCAMAAABC4vDmAAAAY1BMVEUNfoD///8Ae30Ad3kAc3Xp8PD6/f3z+Pg1iYq919gAcHPh7OzB2toeg4Xo8vLe7OylxMVMlZaKtbY7j5BZnJ6fx8hzrK18r7GQvb6pzc5np6hJmpvV5eaCtrdFjY+vzc6cvL2XQRnhAAACmElEQVR4nO3YaXObMBAGYF0WYBD3qSrF//9XFnBiA45jREXazLzP5EtmssvqQEFLCAAAAAAAAAAAAADAD8DEefw5KjHfE0nKKjydgtp3XNaQuAvjU9Qo68Tcj+hVUu8Z0/PE6p5Y2IWyzKM3rcOqWBnPEtvNlTL3UCq1uxVkyTxxYzNc0dG52H75n9VULRJ7xCLxWS5iqXa1gCpZJs63J2a/lqE0stySTxOXq8TB9pni7So2cTRTvF4lNmp7bLouytGe4m9/UVRz0Ewxvb8oRlaxnas99Xv1BvUWoz2Hy9jM1ZGwOP8GpUViXi9GZPGOvLB6/SKrbcH6WWhcuDvRF8dybLcCjPe3uUoyl/+RZ2d6YrsrGKuvh6+Xuv12Yax5P9Wrwn6wXBT55aKZoxdvnbhkfNdgGef7ArckdvqRBgAAAADw0wzf2sd8bQ+Xk92BdRQahz3CWeZC7RotE3rqx0q3Xd4ptQ6pjKzvqoyr5qOnEJ9d11RMt2ivIxazxYaS2nuTUbpePxF8ZO6zjTdEJlQdzJsn0vXy8XtfxzPaZy82/fCuqSwNlx0qV52vGzFvzVAvyAshPp+wYc2EKJp+1faitHJc0tiXi5eP8MKqyRQZb/s309XfL/Pu5K0rkoGzZty8qsysH0S92PTppS7LYpCVukm7IPHkw99R2ZUHdSpIHT8+bnyilN5IflLNtfYq233uvsTJ2+NsvSJNvu/M3YpxooOH7fJVRWGf7f/vtBkXRbt1upJKc3F4RZNh4P6biZ9toKvhFWiLb5ijeV2c+7oNkicVmSAv/YMag1/XNZzZnBR12keRCU8jY6Kgv2ifTCfXt1d0L42Px7pS/kip99//E+zfzg0AAAAAAAAAAAAAAAAAAMAx/gCGohjmwq7n7QAAAABJRU5ErkJggg=="
+        src={AVATAR}
         alt ="logo screen"
         />
         <button onClick={handleSignOut} className='font-bold  text-white'> sign out</button>
